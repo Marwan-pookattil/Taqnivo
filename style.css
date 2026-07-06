@@ -755,7 +755,7 @@ section { padding: 6rem 5vw; position: relative; z-index: 1; }
 .case-top {
   background: var(--gradient-accent-subtle);
   border-bottom: 1px solid var(--border);
-  padding: 2rem; min-height: 180px;
+  padding: 3.5rem 2rem 2rem 2rem; min-height: 180px;
   display: flex; flex-direction: column; justify-content: flex-end;
   position: relative;
 }
@@ -1102,7 +1102,8 @@ footer .footer-logo { height: 150px; width: auto; }
   .phase p { font-size: 0.82rem; }
 
   .cases-grid { grid-template-columns: 1fr; gap: 1rem; }
-  .case-top { padding: 1.5rem; min-height: 120px; }
+  .case-top { padding: 3rem 1.5rem 1.5rem 1.5rem; min-height: 120px; }
+  .case-top::before { left: 1.5rem; top: 1.2rem; }
   .case-top p { font-size: 0.82rem; }
   .case-bottom { padding: 1.5rem; }
   .case-bottom p { font-size: 0.8rem; }
