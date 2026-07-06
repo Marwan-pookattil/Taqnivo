@@ -46,6 +46,20 @@ const langOptions = langDropdown.querySelectorAll(".lang-option");
 
 const langLabels = { en: "EN", ar: "AR", hi: "HI", ur: "UR", fr: "FR" };
 
+// Sync UI with current Google Translate cookie on page load
+document.addEventListener("DOMContentLoaded", () => {
+  const match = document.cookie.match(/googtrans=\/[a-zA-Z-]+\/([a-zA-Z-]+)/);
+  if (match && match[1]) {
+    const currentLang = match[1].toLowerCase();
+    const option = document.querySelector(`.lang-option[data-lang="${currentLang}"]`);
+    if (option) {
+      langOptions.forEach((o) => o.classList.remove("active"));
+      option.classList.add("active");
+      langCodeEl.textContent = langLabels[currentLang] || currentLang.toUpperCase();
+    }
+  }
+});
+
 // Toggle dropdown
 langBtn.addEventListener("click", (e) => {
   e.stopPropagation();
@@ -83,15 +97,34 @@ function triggerGoogleTranslate(lang) {
   const domain = window.location.hostname;
   
   // Clear any existing translation cookies to prevent conflicts
-  document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-  document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=${domain}; path=/;`;
-  document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.${domain}; path=/;`;
+  const clearCookie = (d) => {
+    if (d) {
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${d};`;
+    } else {
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    }
+  };
+
+  // Google Translate often sets cookies on the root domain.
+  // We must clear cookies across all possible domain and subdomain combinations.
+  const domainsToClear = ['', domain, '.' + domain];
+  const parts = domain.split('.');
+  for (let i = 1; i < parts.length; i++) {
+    const d = parts.slice(i).join('.');
+    domainsToClear.push(d);
+    domainsToClear.push('.' + d);
+  }
+  domainsToClear.forEach(clearCookie);
 
   if (lang !== "en") {
     // Set the new translation cookie (format: /source/target)
     document.cookie = `googtrans=/en/${lang}; path=/;`;
-    document.cookie = `googtrans=/en/${lang}; domain=${domain}; path=/;`;
-    document.cookie = `googtrans=/en/${lang}; domain=.${domain}; path=/;`;
+    if (domain) {
+      // Use the root-most domain possible to match Google's behavior
+      const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(domain);
+      const rootDomain = (parts.length > 2 && !isIp) ? parts.slice(-2).join('.') : domain;
+      document.cookie = `googtrans=/en/${lang}; domain=.${rootDomain}; path=/;`;
+    }
   }
   
   // Reload to let Google Translate script read the cookie and auto-translate
